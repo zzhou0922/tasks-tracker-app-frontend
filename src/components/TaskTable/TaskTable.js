@@ -82,27 +82,27 @@ const TaskTable = ({ name, tasks }) => {
 
     // Save the data to back end server. 
     function handleSave() {
-    	const updatedTasks = { name: name, tasks: editedTasks};
-    	console.log(updatedTasks);
-    	postUpdatedTasksData(updatedTasks);
+    	// const updatedTasks = { name: name, tasks: editedTasks};
+    	// console.log(updatedTasks);
+    	// postUpdatedTasksData(updatedTasks);
 
     }
 
     // Post data to back end server.  
-    const postUpdatedTasksData = async (updatedTasks) => {
-	    try {
-		  const response = await fetch('/api/save', {
-		    method: 'POST',
-		    headers: {
-		      'Content-Type': 'application/json'
-		    },
-		    body: JSON.stringify(updatedTasks)
-		  });
-		  const responseData = await response.json();
-		} catch (error) {
-		  console.error('Error:', error);
-		}
-	}
+ //    const postUpdatedTasksData = async (updatedTasks) => {
+	//     try {
+	// 	  const response = await fetch('/api/save', {
+	// 	    method: 'POST',
+	// 	    headers: {
+	// 	      'Content-Type': 'application/json'
+	// 	    },
+	// 	    body: JSON.stringify(updatedTasks)
+	// 	  });
+	// 	  const responseData = await response.json();
+	// 	} catch (error) {
+	// 	  console.error('Error:', error);
+	// 	}
+	// }
 
     // Return
 	return (
