@@ -4,11 +4,21 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import Scroll from '../Scroll/Scroll';
 
+
+// id is for new added task, it will be negative,
+// so when the object send to backend, 
+// server will know it's a new added task because 
+// the negative id. 
+let id = 0;
 const TaskTable = ({ name, tasks }) => {
+	
+	// id decrement.
+	id--;
 
 	// State used to edit tasks inside the table.
 	const [editedTasks, setEditedTasks] = useState(tasks);
 
+	const [selectedValue, setSelectedValue] = useState("In Progress");
 
 	// Update the cell when editing it.
     function handleCellEdit(event, taskId, fieldName) {
@@ -27,6 +37,7 @@ const TaskTable = ({ name, tasks }) => {
                 return {
                     ...task,
                     [fieldName]: updatedValue,
+                    'edited': "Yes"
                 };
             } else {
                 return task;
@@ -43,6 +54,25 @@ const TaskTable = ({ name, tasks }) => {
     function handleRowDelete(taskId) {
         const updatedTasks = editedTasks.filter((task) => task.id !== taskId);
         setEditedTasks(updatedTasks);
+    }
+
+    // Add entire specified row,  
+    // then update the task table.
+    function handleRowAdd() {
+        editedTasks.push({
+        	id: id,
+        	title: "",
+        	descrption: "",
+        	status: selectedValue,
+        	dueDate: new Date(),
+        	edite: "Yes"
+        })
+        const updatedTasks = editedTasks.map((task) => {       	
+        	return {
+	        	...task
+	    	};
+	  	});
+	  	setEditedTasks(updatedTasks);
     }
 
 
@@ -85,7 +115,7 @@ const TaskTable = ({ name, tasks }) => {
     	// const updatedTasks = { name: name, tasks: editedTasks};
     	// console.log(updatedTasks);
     	// postUpdatedTasksData(updatedTasks);
-
+    	console.log(editedTasks);
     }
 
     // Post data to back end server.  
@@ -119,6 +149,9 @@ const TaskTable = ({ name, tasks }) => {
 	  	    	<button onClick={handleDueDateSort}
 	  	    			className='black b f3 pa2 ph4 ma2 br3 pointer dim shadow-3' 
 	  	    			style={{backgroundColor: '#ADD8E6'}}>Sort by Due Date</button>
+	  	    	<button onClick={handleRowAdd}
+	  	    			className='black b f3 pa2 ph4 ma2 br3 pointer dim shadow-3' 
+	  	    			style={{backgroundColor: '#FFD580'}}>Add Row</button>
 	  	    	<button onClick={handleSave}
 	  	    			className='black b f3 pa2 ph4 ma2 br3 pointer dim shadow-3' 
 	  	    			style={{backgroundColor: '#E3242B'}}>Save</button>
@@ -135,7 +168,7 @@ const TaskTable = ({ name, tasks }) => {
 	                	<th className='ba bw2 shadow-3 br3 pa3'>Description</th>
 	                	<th className='ba bw2 shadow-3 br3 pa3'>Status</th>
 	          			<th className='ba bw2 shadow-3 br3 pa3'>Due Date</th>
-	          			<th className='ba bw2 shadow-3 br3 pa3'>Delete Option</th>
+	          			<th className='ba bw2 shadow-3 br3 pa3'>Delete Row</th>
 	        		</tr>
 	        	</thead>
 
