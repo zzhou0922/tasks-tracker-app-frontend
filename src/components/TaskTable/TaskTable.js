@@ -18,8 +18,6 @@ const TaskTable = ({ name, tasks }) => {
 	// State used to edit tasks inside the table.
 	const [editedTasks, setEditedTasks] = useState(tasks);
 
-	const [selectedValue, setSelectedValue] = useState("In Progress");
-
 	// Update the cell when editing it.
     function handleCellEdit(event, taskId, fieldName) {
 
@@ -63,9 +61,9 @@ const TaskTable = ({ name, tasks }) => {
         	id: id,
         	title: "",
         	descrption: "",
-        	status: selectedValue,
+        	status: "In Progress",
         	dueDate: new Date(),
-        	edite: "Yes"
+        	edited: "Yes"
         })
         const updatedTasks = editedTasks.map((task) => {       	
         	return {
