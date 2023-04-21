@@ -16,6 +16,7 @@ const initialState = {
     route: '/',
     isSignIn: false,
     isLoading: true,
+    id: '',
     name: '',
     tasks: {}
 }
@@ -37,16 +38,36 @@ class App extends Component {
         if(!this.state.name) {
             alert('Name input cannot be empty to sign in.');
         } else {
+            fetch('https://tasks-tracker-backend.herokuapp.com/signin', {
+                method: 'post',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    name: this.state.name
+                })
+            })
+                .then(response => response.json())
+                // .then(console.log)
+                .then(data => {
+                    // Set this.state.isSignIn to true, 
+                    // it will let Navigation changes to Sign Out. 
+                    this.setState({ isSignIn: true });
 
-            // Set this.state.isSignIn to true, 
-            // it will let Navigation changes to Sign Out. 
-            this.setState({ isSignIn: true });
+                    // And we need to change the route to signin.
+                    this.handleRouteChange('/signin');
 
-            // And we need to change the route to signin.
-            this.handleRouteChange('/signin');
+                    
+                    const correctedStatusTasks = data.tasks;
+                    correctedStatusTasks.forEach((task) => {
+                        if(new Date(task.duedate) < new Date() && task.status === "In Progress") {
+                            task.status = "Overdue";
+                            task.edited = "Yes";
+                        } 
+                    });
 
-            // Fetch data from server.
-            this.postUserTasksData();
+                    // And we need to update id and tasks of this.state.
+                    this.handleTasksChange(correctedStatusTasks);
+                    this.handleIdChange(data.id);
+                })
         }
     };
 
@@ -60,30 +81,16 @@ class App extends Component {
         this.setState({ tasks: tasks, isLoading: false });
     };
 
-    // This is the fetch function to get tasks from the server based 
-    // on the name of the user. Once we get that we will pass the info 
-    // to the handleTasksChange function and load that into the main page.   
-    postUserTasksData = async () => {
-        try {
-            const user = {name: this.state.name};
-            const response = await fetch('https://q1rdz.wiremockapi.cloud/user', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(user)
-            });
-            const responseData = await response.json();
-            this.handleTasksChange(responseData.tasks);
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    };
+    // Call this function when we have a name input on the home page.
+    handleIdChange = (id) => {
+        this.setState({ id: id });
+    }
+
 
     render() {
         // Get route, isSignIn, and name from state 
         // so we can avoid to type 'this.state' all the time.
-        const { route, isSignIn, name, tasks } = this.state;
+        const { route, isSignIn, id, name, tasks } = this.state;
         return (
             <div className="App">
                 {/*Navigation is always on the page, 
@@ -99,7 +106,7 @@ class App extends Component {
                          handleSignInButton={this.handleSignInButton}/>
                  : (this.state.isLoading
                     ? <div><h1 className="pa6">Loading...</h1></div>
-                    : <Main name={name} tasks={tasks}/>)}
+                    : <Main id={id} name={name} tasks={tasks}/>)}
             </div>
         );
     }

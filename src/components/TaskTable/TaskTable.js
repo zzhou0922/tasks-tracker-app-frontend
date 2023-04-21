@@ -4,16 +4,17 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import Scroll from '../Scroll/Scroll';
 
-
 // id is for new added task, it will be negative,
 // so when the object send to backend, 
 // server will know it's a new added task because 
 // the negative id. 
 let id = 0;
-const TaskTable = ({ name, tasks }) => {
+const deleteRows = [];
+const TaskTable = ({ currUserId, name, tasks }) => {
 	
 	// id decrement.
 	id--;
+	
 
 	// State used to edit tasks inside the table.
 	const [editedTasks, setEditedTasks] = useState(tasks);
@@ -23,9 +24,9 @@ const TaskTable = ({ name, tasks }) => {
 
         const updatedTasks = editedTasks.map((task) => {
         	let updatedValue;
-		    if (fieldName === 'status') {
+        	if (fieldName === 'status') {
 		    	updatedValue = event.target.value;
-		  	} else if (fieldName === 'dueDate') {
+		  	} else if (fieldName === 'duedate') {
 		    	updatedValue = event.toISOString();
 		  	} else {
 		    	updatedValue = event.target.innerText;
@@ -50,6 +51,7 @@ const TaskTable = ({ name, tasks }) => {
     // use the filter function here, 
     // then update the task table.
     function handleRowDelete(taskId) {
+    	if(taskId > 0) deleteRows.push(taskId);
         const updatedTasks = editedTasks.filter((task) => task.id !== taskId);
         setEditedTasks(updatedTasks);
     }
@@ -62,7 +64,7 @@ const TaskTable = ({ name, tasks }) => {
         	title: "",
         	descrption: "",
         	status: "In Progress",
-        	dueDate: new Date(),
+        	duedate: new Date(),
         	edited: "Yes"
         })
         const updatedTasks = editedTasks.map((task) => {       	
@@ -103,34 +105,50 @@ const TaskTable = ({ name, tasks }) => {
     // then update the task table.
     function handleDueDateSort() {
         const sortedTasks = [...editedTasks].sort((a, b) =>
-            new Date(a.dueDate) - new Date(b.dueDate)
+            new Date(a.duedate) - new Date(b.duedate)
         );
         setEditedTasks(sortedTasks);
     }
 
     // Save the data to back end server. 
-    function handleSave() {
-    	// const updatedTasks = { name: name, tasks: editedTasks};
-    	// console.log(updatedTasks);
-    	// postUpdatedTasksData(updatedTasks);
-    	console.log(editedTasks);
+    async function handleSave() {
+    	const updatedUser = { id: currUserId, name: name, tasks: editedTasks, deleterows: deleteRows};
+	    await putUpdatedUserData(updatedUser);
+  		await retrieveUpdatedUserData();
+  		console.log(updatedUser);
     }
 
-    // Post data to back end server.  
- //    const postUpdatedTasksData = async (updatedTasks) => {
-	//     try {
-	// 	  const response = await fetch('/api/save', {
-	// 	    method: 'POST',
-	// 	    headers: {
-	// 	      'Content-Type': 'application/json'
-	// 	    },
-	// 	    body: JSON.stringify(updatedTasks)
-	// 	  });
-	// 	  const responseData = await response.json();
-	// 	} catch (error) {
-	// 	  console.error('Error:', error);
-	// 	}
-	// }
+    // Send updated user info to the back end server.  
+    const putUpdatedUserData = async (updatedUser) => {
+    	fetch('https://tasks-tracker-backend.herokuapp.com/updateuser', {
+                method: 'put',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(updatedUser)
+        })
+        	.then(response => response.json())
+        	.then(data => {
+                console.log('Success', data);
+        	}).catch((error) => {
+    			console.error('Error:', error);
+  			});
+	}
+
+	// Ger updated user info from the back end server.
+	const retrieveUpdatedUserData = async () => {
+		const user = {name: name};
+  		try {
+		    const response = await fetch('https://tasks-tracker-backend.herokuapp.com/signin', {
+                method: 'post',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(user)
+        	})
+		    const data = await response.json();
+		    setEditedTasks(data.tasks);
+		} catch (error) {
+		    console.error('Error:', error);
+		}
+	}
+
 
     // Return
 	return (
@@ -212,9 +230,9 @@ const TaskTable = ({ name, tasks }) => {
 	              				suppressContentEditableWarning
 	              				>
 	              				<DatePicker
-								    selected={new Date(task.dueDate)}
+								    selected={new Date(task.duedate)}
 								    className="f5 bb br2 dim shadow-3 pl1 w-33"
-								    onChange={(date) => handleCellEdit(date, task.id, 'dueDate')}
+								    onChange={(date) => handleCellEdit(date, task.id, 'duedate')}
 								    dateFormat="yyyy/MM/dd"
 								/>
 	            			</td>
